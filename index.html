@@ -116,7 +116,7 @@
                 <button class="primary-button" id="addHabitButton" type="button"><span>＋</span> Add habit</button>
               </div>
             </div>
-            <div class="board-heading"><div><p class="eyebrow">SHOW UP FOR YOURSELF</p><h2>Weekly quests <span class="heading-count" id="habitCount">0</span></h2></div><p class="panel-description" id="habitDateDescription">Complete your target to unlock bonus check-ins.</p></div>
+            <div class="board-heading"><div><p class="eyebrow">SHOW UP FOR YOURSELF</p><h2>Weekly quests <span class="heading-count" id="habitCount">0</span></h2></div><p class="panel-description" id="habitDateDescription">Tick each day you complete a quest.</p></div>
             <div class="habit-list" id="habitList" aria-live="polite"></div>
             <div class="empty-state" id="emptyState" hidden>
               <div class="empty-icon">☀</div>
@@ -125,7 +125,7 @@
               <button class="primary-button" id="emptyAddButton" type="button">＋ Create your first quest</button>
             </div>
             <div class="filter-empty" id="filterEmptyState" hidden>No quests match this filter for the selected week.</div>
-            <div class="habit-footer"><span class="footer-spark">✦</span> Fill every box to unlock a bonus quest. Each check-in earns <strong>10 XP</strong>.</div>
+            <div class="habit-footer"><span class="footer-spark">✦</span> Tick the days you complete a quest. Each check-in earns <strong>10 XP</strong>.</div>
         </section>
 
         <section class="panel progress-panel history-panel">
@@ -158,8 +158,8 @@
         <label for="habitTitle">Habit name</label>
         <input id="habitTitle" name="title" maxlength="60" placeholder="e.g. Read for 10 minutes" required />
         <label for="weeklyGoal">Weekly target</label>
-        <input id="weeklyGoal" name="weeklyGoal" type="number" min="1" step="1" value="3" required />
-        <small class="field-hint">How many times would you like to complete this quest each week?</small>
+        <input id="weeklyGoal" name="weeklyGoal" type="number" min="1" max="7" step="1" value="3" required />
+        <small class="field-hint">Choose how many days, from 1 to 7, to complete this quest each week.</small>
         <div class="form-error" id="habitError" aria-live="polite"></div>
         <button class="primary-button modal-submit" type="submit">Start this quest <span>→</span></button>
       </form>
