@@ -74,38 +74,38 @@
             <div class="stat-foot"><span class="tiny-fire">↗</span> One day at a time</div>
           </article>
           <article class="stat-card">
-            <div class="stat-top"><span class="stat-label">HABITS TODAY</span><span class="stat-icon check-icon">✓</span></div>
-            <div class="stat-value"><span id="todayValue">0/0</span></div>
-            <div class="stat-foot"><span id="todayFoot">Pick one small win</span></div>
+            <div class="stat-top"><span class="stat-label">QUEST CHECK-INS</span><span class="stat-icon check-icon">✓</span></div>
+            <div class="stat-value"><span id="questValue">0/0</span></div>
+            <div class="stat-foot"><span id="questFoot">Choose your first quest</span></div>
           </article>
         </section>
 
         <div class="dashboard-grid">
           <section class="panel habits-panel" id="habits">
             <div class="panel-heading">
-              <div><p class="eyebrow">SHOW UP FOR YOURSELF</p><h2>Today's habits <span class="heading-count" id="habitCount">0</span></h2></div>
-              <button class="primary-button" id="addHabitButton" type="button"><span>＋</span> Add habit</button>
+              <div><p class="eyebrow">YOUR QUEST BOARD</p><h2>Weekly quests <span class="heading-count" id="habitCount">0</span></h2></div>
+              <button class="primary-button" id="addHabitButton" type="button"><span>＋</span> Add quest</button>
             </div>
-            <p class="panel-description" id="habitDateDescription">Make a little progress today.</p>
+            <p class="panel-description" id="habitDateDescription">Complete your target to unlock bonus check-ins.</p>
             <div class="habit-list" id="habitList" aria-live="polite"></div>
             <div class="empty-state" id="emptyState" hidden>
               <div class="empty-icon">☀</div>
-              <h3>Your first small win starts here</h3>
-              <p>Add a habit you want to make part of your day.</p>
-              <button class="primary-button" id="emptyAddButton" type="button">＋ Add your first habit</button>
+              <h3>Your first quest starts here</h3>
+              <p>Choose a habit and set how many times you want to complete it each week.</p>
+              <button class="primary-button" id="emptyAddButton" type="button">＋ Create your first quest</button>
             </div>
-            <div class="habit-footer"><span class="footer-spark">✦</span> Every check-in earns <strong>10 XP</strong>. Keep your momentum going!</div>
+            <div class="habit-footer"><span class="footer-spark">✦</span> Fill every box to unlock a bonus quest. Each check-in earns <strong>10 XP</strong>.</div>
           </section>
 
           <div class="right-column">
             <section class="panel progress-panel">
-              <div class="panel-heading compact-heading"><div><p class="eyebrow">YOUR MOMENTUM</p><h2>This week</h2></div><span class="week-tag">LAST 7 DAYS</span></div>
-              <div class="week-chart" id="weekChart" aria-label="Habit completions over the last seven days"></div>
-              <div class="chart-legend"><span><i></i> Habits completed</span><span id="weekTotal">0 check-ins</span></div>
+              <div class="panel-heading compact-heading"><div><p class="eyebrow">YOUR MOMENTUM</p><h2>Quest history</h2></div><span class="week-tag">LAST 4 WEEKS</span></div>
+              <div class="week-chart" id="weekChart" aria-label="Quest check-ins over the last four weeks"></div>
+              <div class="chart-legend"><span><i></i> Quest check-ins</span><span id="weekTotal">0 check-ins</span></div>
             </section>
 
             <section class="panel goal-panel">
-              <div class="panel-heading compact-heading"><div><p class="eyebrow">DAILY RHYTHM</p><h2>Today's progress</h2></div><span class="progress-sun">☼</span></div>
+              <div class="panel-heading compact-heading"><div><p class="eyebrow">WEEKLY QUEST</p><h2>Weekly progress</h2></div><span class="progress-sun">☼</span></div>
               <div class="goal-content">
                 <div class="progress-ring" id="progressRing"><div><strong id="progressPercent">0%</strong><span>complete</span></div></div>
                 <div class="goal-copy"><strong id="goalTitle">A fresh start</strong><p id="goalMessage">Small steps make a big difference.</p><div class="goal-track"><span id="goalTrackFill"></span></div><small id="goalCount">0 habits done</small></div>
@@ -131,14 +131,17 @@
     <dialog class="modal" id="habitDialog" aria-labelledby="habitDialogTitle">
       <form id="habitForm" class="modal-form">
         <button class="modal-close" type="button" data-close="habitDialog" aria-label="Close">×</button>
-        <p class="eyebrow">MAKE IT YOURS</p><h2 id="habitDialogTitle">Add a habit</h2>
-        <p class="modal-copy">Choose something small and doable that you'd like to repeat.</p>
+        <p class="eyebrow">MAKE IT YOURS</p><h2 id="habitDialogTitle">Create a quest</h2>
+        <p class="modal-copy">Choose a habit and a weekly target that feels doable.</p>
         <label for="habitEmoji">Pick an icon</label>
         <select id="habitEmoji" name="emoji"><option>🌱</option><option>💧</option><option>📖</option><option>🏃</option><option>🧘</option><option>✍️</option><option>☀️</option><option>🥗</option><option>💤</option><option>🎨</option></select>
         <label for="habitTitle">Habit name</label>
         <input id="habitTitle" name="title" maxlength="60" placeholder="e.g. Read for 10 minutes" required />
+        <label for="weeklyGoal">Weekly target</label>
+        <input id="weeklyGoal" name="weeklyGoal" type="number" min="1" step="1" value="3" required />
+        <small class="field-hint">How many times would you like to complete this quest each week?</small>
         <div class="form-error" id="habitError" aria-live="polite"></div>
-        <button class="primary-button modal-submit" type="submit">Add to my habits <span>→</span></button>
+        <button class="primary-button modal-submit" type="submit">Start this quest <span>→</span></button>
       </form>
     </dialog>
 
@@ -172,3 +175,4 @@
     <script src="app.js"></script>
   </body>
 </html>
+
