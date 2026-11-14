@@ -4,9 +4,11 @@ Daymark là website theo dõi thói quen bằng tiếng Anh, có điểm XP, str
 
 ## MVP hiện có
 
-- Thêm thói quen và đánh dấu hoàn thành trong ngày
+- Tạo habit quest và tự đặt mục tiêu số lần hoàn thành mỗi tuần
+- Hiển thị ô check-in theo mục tiêu; khi đủ mục tiêu, tự mở thêm ô bonus không giới hạn
+- Sang tuần mới, ô quest bắt đầu lại theo mục tiêu; lịch sử check-in và mục tiêu từng tuần được lưu lại
 - Nhận 10 XP mỗi lần check-in; điểm được quy đổi thành level
-- Theo dõi streak, hoạt động 7 ngày, tiến độ hôm nay và 4 huy hiệu
+- Theo dõi streak, lịch sử 4 tuần, tiến độ tuần và 4 huy hiệu
 - Đăng nhập bằng email/mật khẩu với Supabase
 - Tách dữ liệu theo tài khoản bằng Row Level Security
 - Giao diện thích ứng với màn hình máy tính và điện thoại
@@ -25,7 +27,7 @@ Daymark là website theo dõi thói quen bằng tiếng Anh, có điểm XP, str
 ## Bắt đầu với Supabase
 
 1. Tạo một project Supabase.
-2. Mở **SQL Editor**, dán nội dung `supabase/schema.sql` rồi chạy một lần.
+2. Với project mới, mở **SQL Editor** và chạy `supabase/schema.sql`. Nếu đã dùng phiên bản Daymark trước đây, chạy `supabase/migrations/20261114_habit_quests.sql` để thêm mục tiêu tuần mà giữ nguyên check-in cũ.
 3. Trong cài đặt API của project, lấy **Project URL** và **anon/publishable key**; dán vào `config.js`.
 4. Trong cài đặt Supabase Auth, thêm URL GitHub Pages vào danh sách **Allowed redirect URLs**.
 5. Đưa các file trong thư mục này lên GitHub Pages. Tạo tài khoản Daymark; thói quen và check-in sẽ được lưu online.
@@ -38,4 +40,5 @@ Public anon/publishable key được thiết kế để dùng trong ứng dụng
 
 ## Phạm vi MVP
 
-Ở bản đầu, mọi thói quen được xem là lặp hằng ngày, mỗi check-in nhận cố định 10 XP, và streak tính theo ngày có ít nhất một thói quen hoàn thành. Dữ liệu xem thử chỉ nằm trong bộ nhớ của trang và sẽ mất khi tải lại; đây không phải tài khoản online. Sau khi cấu hình Supabase, ứng dụng yêu cầu đăng nhập và đọc/ghi dữ liệu của tài khoản trên database.
+Mỗi habit quest có một mục tiêu hàng tuần. Các ô hoàn thành được lưu thành những check-in riêng; khi đủ mục tiêu sẽ mở thêm ô bonus, còn tuần mới bắt đầu lại theo mục tiêu đã đặt. Lịch sử các tuần trước tiếp tục được dùng cho thống kê. Mỗi check-in nhận cố định 10 XP, và streak tính theo ngày có ít nhất một check-in. Dữ liệu xem thử chỉ nằm trong bộ nhớ của trang và sẽ mất khi tải lại; đây không phải tài khoản online. Sau khi cấu hình Supabase, ứng dụng yêu cầu đăng nhập và đọc/ghi dữ liệu của tài khoản trên database.
+
