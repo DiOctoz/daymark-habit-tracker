@@ -47,13 +47,20 @@
           </div>
         </header>
 
-        <section class="welcome-row">
+        <section class="welcome-row quest-board-header">
           <div>
-            <p class="eyebrow">YOUR PERSONAL GROWTH SPACE</p>
-            <h1>Make today <span>count.</span></h1>
-            <p class="welcome-subtitle">A little progress each day adds up to big results.</p>
+            <p class="eyebrow">YOUR QUEST BOARD</p>
+            <h1>Welcome back! <span>👋</span></h1>
+            <p class="welcome-subtitle">Keep building good habits one week at a time.</p>
           </div>
-          <div class="level-chip"><span class="level-icon">✹</span><span><small>YOUR LEVEL</small><strong id="levelLabel">Seedling · 1</strong></span></div>
+          <div class="quest-header-actions">
+            <div class="week-navigator" aria-label="Choose a week">
+              <button class="week-nav-button" id="previousWeekButton" type="button" aria-label="Previous week">‹</button>
+              <div class="week-current"><span aria-hidden="true">▦</span><strong id="selectedWeekLabel">This week</strong></div>
+              <button class="week-nav-button" id="nextWeekButton" type="button" aria-label="Next week" disabled>›</button>
+            </div>
+            <div class="level-chip"><span class="level-icon">✹</span><span><small>YOUR LEVEL</small><strong id="levelLabel">Seedling · 1</strong></span></div>
+          </div>
         </section>
 
         <div class="demo-banner" id="demoBanner" role="status">
@@ -80,13 +87,36 @@
           </article>
         </section>
 
-        <div class="dashboard-grid">
-          <section class="panel habits-panel" id="habits">
-            <div class="panel-heading">
-              <div><p class="eyebrow">YOUR QUEST BOARD</p><h2>Weekly quests <span class="heading-count" id="habitCount">0</span></h2></div>
-              <button class="primary-button" id="addHabitButton" type="button"><span>＋</span> Add quest</button>
+        <section class="quest-overview" aria-label="Weekly quest summary">
+          <article class="weekly-goal-banner">
+            <div class="goal-banner-copy">
+              <div class="goal-banner-heading"><span>WEEKLY PROGRESS</span><span aria-hidden="true">🎯</span></div>
+              <div class="goal-banner-result"><strong id="questProgressValue">0/0</strong><span>check-ins toward your targets</span></div>
+              <div class="week-goal-track" role="progressbar" aria-label="Weekly quest progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="questProgressFill"></span></div>
             </div>
-            <p class="panel-description" id="habitDateDescription">Complete your target to unlock bonus check-ins.</p>
+            <strong class="goal-percent" id="questProgressPercent">0%</strong>
+          </article>
+          <article class="quest-summary-card summary-reached"><div class="summary-icon">✓</div><strong id="goalsReachedCount">0</strong><span>Goals reached</span></article>
+          <article class="quest-summary-card summary-active"><div class="summary-icon">◌</div><strong id="questsActiveCount">0</strong><span>In progress</span></article>
+          <article class="quest-summary-card summary-total"><div class="summary-icon">▦</div><strong id="questsTotalCount">0</strong><span>Total quests</span></article>
+        </section>
+
+        <section class="panel habits-panel" id="habits">
+            <div class="quest-toolbar">
+              <div class="quest-filters" role="group" aria-label="Filter quests">
+                <button class="quest-filter is-active" type="button" data-quest-filter="all" aria-pressed="true">All <span id="filterAllCount">0</span></button>
+                <button class="quest-filter" type="button" data-quest-filter="reached" aria-pressed="false">Goals reached <span id="filterReachedCount">0</span></button>
+                <button class="quest-filter" type="button" data-quest-filter="active" aria-pressed="false">In progress <span id="filterActiveCount">0</span></button>
+              </div>
+              <div class="quest-toolbar-actions">
+                <div class="quest-view-toggle" role="group" aria-label="Quest layout">
+                  <button class="is-active" id="listViewButton" type="button" aria-label="List view" aria-pressed="true">☷</button>
+                  <button id="gridViewButton" type="button" aria-label="Grid view" aria-pressed="false">▦</button>
+                </div>
+                <button class="primary-button" id="addHabitButton" type="button"><span>＋</span> Add habit</button>
+              </div>
+            </div>
+            <div class="board-heading"><div><p class="eyebrow">SHOW UP FOR YOURSELF</p><h2>Weekly quests <span class="heading-count" id="habitCount">0</span></h2></div><p class="panel-description" id="habitDateDescription">Complete your target to unlock bonus check-ins.</p></div>
             <div class="habit-list" id="habitList" aria-live="polite"></div>
             <div class="empty-state" id="emptyState" hidden>
               <div class="empty-icon">☀</div>
@@ -94,25 +124,15 @@
               <p>Choose a habit and set how many times you want to complete it each week.</p>
               <button class="primary-button" id="emptyAddButton" type="button">＋ Create your first quest</button>
             </div>
+            <div class="filter-empty" id="filterEmptyState" hidden>No quests match this filter for the selected week.</div>
             <div class="habit-footer"><span class="footer-spark">✦</span> Fill every box to unlock a bonus quest. Each check-in earns <strong>10 XP</strong>.</div>
-          </section>
+        </section>
 
-          <div class="right-column">
-            <section class="panel progress-panel">
-              <div class="panel-heading compact-heading"><div><p class="eyebrow">YOUR MOMENTUM</p><h2>Quest history</h2></div><span class="week-tag">LAST 4 WEEKS</span></div>
-              <div class="week-chart" id="weekChart" aria-label="Quest check-ins over the last four weeks"></div>
-              <div class="chart-legend"><span><i></i> Quest check-ins</span><span id="weekTotal">0 check-ins</span></div>
-            </section>
-
-            <section class="panel goal-panel">
-              <div class="panel-heading compact-heading"><div><p class="eyebrow">WEEKLY QUEST</p><h2>Weekly progress</h2></div><span class="progress-sun">☼</span></div>
-              <div class="goal-content">
-                <div class="progress-ring" id="progressRing"><div><strong id="progressPercent">0%</strong><span>complete</span></div></div>
-                <div class="goal-copy"><strong id="goalTitle">A fresh start</strong><p id="goalMessage">Small steps make a big difference.</p><div class="goal-track"><span id="goalTrackFill"></span></div><small id="goalCount">0 habits done</small></div>
-              </div>
-            </section>
-          </div>
-        </div>
+        <section class="panel progress-panel history-panel">
+          <div class="panel-heading compact-heading"><div><p class="eyebrow">YOUR MOMENTUM</p><h2>Quest history</h2></div><span class="week-tag">4 WEEKS</span></div>
+          <div class="week-chart" id="weekChart" aria-label="Quest check-ins over the last four weeks"></div>
+          <div class="chart-legend"><span><i></i> Quest check-ins</span><span id="weekTotal">0 check-ins</span></div>
+        </section>
 
         <section class="panel achievements-panel" id="achievements">
           <div class="panel-heading">
