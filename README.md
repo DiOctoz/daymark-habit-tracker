@@ -4,9 +4,9 @@ Daymark là website theo dõi thói quen bằng tiếng Anh, có điểm XP, str
 
 ## MVP hiện có
 
-- Tạo habit quest và tự đặt mục tiêu số lần hoàn thành mỗi tuần
-- Hiển thị ô check-in theo mục tiêu; khi đủ mục tiêu, tự mở thêm ô bonus không giới hạn
-- Sang tuần mới, ô quest bắt đầu lại theo mục tiêu; lịch sử check-in và mục tiêu từng tuần được lưu lại
+- Tạo habit quest và tự đặt mục tiêu từ 1 đến 7 ngày hoàn thành mỗi tuần
+- Hiển thị đủ 7 ngày (Mon–Sun) cho mỗi quest, mỗi ngày có một ô tick và ngày tháng
+- Theo dõi mục tiêu hàng tuần; tuần cũ vẫn xem được và lưu cho thống kê
 - Nhận 10 XP mỗi lần check-in; điểm được quy đổi thành level
 - Theo dõi streak, lịch sử 4 tuần, tiến độ tuần và 4 huy hiệu
 - Đăng nhập bằng email/mật khẩu với Supabase
@@ -40,5 +40,5 @@ Public anon/publishable key được thiết kế để dùng trong ứng dụng
 
 ## Phạm vi MVP
 
-Mỗi habit quest có một mục tiêu hàng tuần. Các ô hoàn thành được lưu thành những check-in riêng; khi đủ mục tiêu sẽ mở thêm ô bonus, còn tuần mới bắt đầu lại theo mục tiêu đã đặt. Lịch sử các tuần trước tiếp tục được dùng cho thống kê. Mỗi check-in nhận cố định 10 XP, và streak tính theo ngày có ít nhất một check-in. Dữ liệu xem thử chỉ nằm trong bộ nhớ của trang và sẽ mất khi tải lại; đây không phải tài khoản online. Sau khi cấu hình Supabase, ứng dụng yêu cầu đăng nhập và đọc/ghi dữ liệu của tài khoản trên database.
+Mỗi habit quest có một mục tiêu từ 1 đến 7 ngày và một ô tick cho từng ngày từ Mon đến Sun. Mỗi ngày có tối đa một dấu tick cho mỗi quest; đạt hoặc vượt mục tiêu sẽ thể hiện trong tiến độ mà không tạo thêm ô. Tuần mới hiển thị bảy ngày mới, còn các tuần cũ tiếp tục được lưu để xem và thống kê. Mỗi check-in nhận cố định 10 XP, và streak tính theo ngày có ít nhất một check-in. Dữ liệu xem thử chỉ nằm trong bộ nhớ của trang và sẽ mất khi tải lại; đây không phải tài khoản online. Sau khi cấu hình Supabase, ứng dụng yêu cầu đăng nhập và đọc/ghi dữ liệu của tài khoản trên database.
 
