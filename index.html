@@ -150,7 +150,7 @@
         <button class="modal-close" type="button" data-close="settingsDialog" aria-label="Close">×</button>
         <p class="eyebrow">YOUR ACCOUNT</p><h2 id="settingsTitle">Settings</h2>
         <p class="modal-copy" id="settingsDescription">Preview mode is active. Connect your Supabase project to use your account and sync data online.</p>
-        <div class="setup-steps" id="setupSteps"><span>1</span><p>Create a Supabase project, then run <code>supabase/schema.sql</code> in its SQL Editor.</p><span>2</span><p>Copy your Project URL and anon key into <code>config.js</code>.</p><span>3</span><p>Enable GitHub Pages for this site. Your habits will sync after you sign in.</p></div>
+        <div class="setup-steps" id="setupSteps"><span>1</span><p>For a new database, run <code>supabase/schema.sql</code>. For an older Daymark database, run <code>supabase/migrations/20261114_habit_quests.sql</code>.</p><span>2</span><p>Copy your Project URL and anon key into <code>config.js</code>.</p><span>3</span><p>Enable GitHub Pages for this site. Your quests will sync after you sign in.</p></div>
         <div class="account-email" id="accountEmail" hidden></div>
         <button class="secondary-button full-button" id="signOutButton" type="button" hidden>Sign out</button>
         <button class="primary-button modal-submit" type="button" data-close="settingsDialog">Got it</button>
