@@ -1,6 +1,6 @@
 -- Upgrade existing Daymark projects to weekly Habit Quest check-ins.
 alter table public.habits
-  add column weekly_goal integer not null default 3 check (weekly_goal > 0);
+  add column weekly_goal integer not null default 3 check (weekly_goal between 1 and 7);
 
 alter table public.completions
   drop constraint if exists one_checkin_per_habit_per_day;
@@ -13,7 +13,7 @@ create table public.habit_quest_weeks (
   user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
   habit_id uuid not null references public.habits (id) on delete cascade,
   week_start date not null,
-  weekly_goal integer not null check (weekly_goal > 0),
+  weekly_goal integer not null check (weekly_goal between 1 and 7),
   created_at timestamptz not null default now(),
   constraint habit_quest_weeks_habit_week_unique unique (habit_id, week_start)
 );
