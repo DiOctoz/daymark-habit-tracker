@@ -4,7 +4,7 @@ create table if not exists public.habits (
   user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
   title text not null check (char_length(title) between 1 and 60),
   emoji text not null default '🌱',
-  weekly_goal integer not null default 3 check (weekly_goal > 0),
+  weekly_goal integer not null default 3 check (weekly_goal between 1 and 7),
   frequency_days integer[] not null default array[0,1,2,3,4,5,6],
   archived boolean not null default false,
   created_at timestamptz not null default now()
@@ -24,7 +24,7 @@ create table if not exists public.habit_quest_weeks (
   user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
   habit_id uuid not null references public.habits (id) on delete cascade,
   week_start date not null,
-  weekly_goal integer not null check (weekly_goal > 0),
+  weekly_goal integer not null check (weekly_goal between 1 and 7),
   created_at timestamptz not null default now(),
   constraint habit_quest_weeks_habit_week_unique unique (habit_id, week_start)
 );
