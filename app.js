@@ -4,7 +4,7 @@
   const db = configured ? window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey) : null;
   const $ = (selector) => document.querySelector(selector);
   let today = localDate();
-  const state = { user: null, habits: [], completions: [], questWeeks: [], demo: !configured, busy: false, authMode: "signin" };
+  const state = { user: null, habits: [], completions: [], questWeeks: [], selectedWeekStart: "", activeFilter: "all", viewMode: "list", demo: !configured, busy: false, authMode: "signin" };
   let toastTimeout;
 
   function localDate(date = new Date()) {
@@ -36,6 +36,25 @@
     const date = new Date(`${start}T12:00:00`);
     date.setDate(date.getDate() + offset * 7);
     return localDate(date);
+  }
+
+  function formatWeekLabel(start) {
+    const first = new Date(`${start}T12:00:00`);
+    const last = new Date(`${weekEnd(start)}T12:00:00`);
+    const year = new Intl.DateTimeFormat("en", { year: "numeric" }).format(last);
+    const month = new Intl.DateTimeFormat("en", { month: "short" }).format(first);
+    const lastMonth = new Intl.DateTimeFormat("en", { month: "short" }).format(last);
+    const firstDay = new Intl.DateTimeFormat("en", { day: "numeric" }).format(first);
+    const lastDay = new Intl.DateTimeFormat("en", { day: "numeric" }).format(last);
+    return month === lastMonth ? `Week ${month} ${firstDay}–${lastDay}, ${year}` : `Week ${month} ${firstDay}–${lastMonth} ${lastDay}, ${year}`;
+  }
+
+  function formatSlotDate(day) {
+    return new Intl.DateTimeFormat("en", { month: "2-digit", day: "2-digit" }).format(new Date(`${day}T12:00:00`));
+  }
+
+  function formatSlotDay(day) {
+    return new Intl.DateTimeFormat("en", { weekday: "short" }).format(new Date(`${day}T12:00:00`));
   }
 
   function seedDemo() {
@@ -73,18 +92,17 @@
     });
   }
 
-  function getWeekCompletions(start) {
+  function getWeekCompletions(start = state.selectedWeekStart || weekStart()) {
     const end = weekEnd(start);
     return state.completions.filter((row) => row.completed_on >= start && row.completed_on <= end);
   }
 
-  function getQuestGoal(habit) {
-    const currentWeek = weekStart();
-    const snapshot = state.questWeeks.find((row) => row.habit_id === habit.id && row.week_start === currentWeek);
+  function getQuestGoal(habit, start = state.selectedWeekStart || weekStart()) {
+    const snapshot = state.questWeeks.find((row) => row.habit_id === habit.id && row.week_start === start);
     return Math.max(1, Number(snapshot?.weekly_goal || habit.weekly_goal || 3));
   }
 
-  function getHabitWeekCompletions(habitId, start = weekStart()) {
+  function getHabitWeekCompletions(habitId, start = state.selectedWeekStart || weekStart()) {
     return getWeekCompletions(start)
       .filter((row) => row.habit_id === habitId)
       .sort((a, b) => String(a.completed_on).localeCompare(String(b.completed_on)) || String(a.created_at || a.id).localeCompare(String(b.created_at || b.id)));
@@ -100,11 +118,15 @@
 
   function render() {
     const totalPoints = state.completions.reduce((sum, item) => sum + Number(item.points || 10), 0);
-    const thisWeek = getWeekCompletions(weekStart());
-    const weeklyGoalTotal = state.habits.reduce((sum, habit) => sum + getQuestGoal(habit), 0);
-    const completedThisWeek = thisWeek.length;
+    const selectedWeek = state.selectedWeekStart || weekStart();
+    const weekEntries = getWeekCompletions(selectedWeek);
+    const weeklyGoalTotal = state.habits.reduce((sum, habit) => sum + getQuestGoal(habit, selectedWeek), 0);
+    const completedThisWeek = weekEntries.length;
     const streak = currentStreak();
     const level = Math.floor(totalPoints / 100) + 1;
+    const reachedCount = state.habits.filter((habit) => getHabitWeekCompletions(habit.id, selectedWeek).length >= getQuestGoal(habit, selectedWeek)).length;
+    const activeCount = state.habits.length - reachedCount;
+    const percent = weeklyGoalTotal ? Math.round(completedThisWeek / weeklyGoalTotal * 100) : 0;
 
     $("#pointsValue").textContent = totalPoints.toLocaleString();
     $("#streakValue").textContent = streak;
@@ -113,36 +135,71 @@
     $("#levelLabel").textContent = `${level === 1 ? "Seedling" : level < 4 ? "Sprout" : "Bloom"} · ${level}`;
     const extras = Math.max(0, completedThisWeek - weeklyGoalTotal);
     $("#questFoot").textContent = extras ? `${extras} bonus ${extras === 1 ? "check-in" : "check-ins"} beyond your targets` : weeklyGoalTotal ? `${Math.max(0, weeklyGoalTotal - completedThisWeek)} check-ins to your weekly targets` : "Choose your first quest";
-    $("#habitDateDescription").textContent = `Week of ${new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }).format(new Date(`${weekStart()}T12:00:00`))} · complete every box to unlock a bonus quest`;
+    $("#selectedWeekLabel").textContent = formatWeekLabel(selectedWeek);
+    $("#nextWeekButton").disabled = selectedWeek >= weekStart();
+    $("#questProgressValue").textContent = `${completedThisWeek}/${weeklyGoalTotal}`;
+    $("#questProgressPercent").textContent = `${percent}%`;
+    $("#questProgressFill").style.width = `${Math.min(100, percent)}%`;
+    $(".week-goal-track").setAttribute("aria-valuenow", String(Math.min(100, percent)));
+    $("#goalsReachedCount").textContent = reachedCount;
+    $("#questsActiveCount").textContent = activeCount;
+    $("#questsTotalCount").textContent = state.habits.length;
+    $("#filterAllCount").textContent = state.habits.length;
+    $("#filterReachedCount").textContent = reachedCount;
+    $("#filterActiveCount").textContent = activeCount;
+    $("#habitDateDescription").textContent = selectedWeek === weekStart()
+      ? "Complete the next open box. Reach your target to unlock bonus check-ins."
+      : "Past weeks are saved here for your review. Check-ins are read-only.";
     $("#emptyState").hidden = state.habits.length > 0;
-    $("#habitList").innerHTML = state.habits.map(renderQuestCard).join("");
+    const visibleHabits = state.habits.filter((habit) => {
+      const count = getHabitWeekCompletions(habit.id, selectedWeek).length;
+      const reached = count >= getQuestGoal(habit, selectedWeek);
+      return state.activeFilter === "all" || (state.activeFilter === "reached" ? reached : !reached);
+    });
+    $("#habitList").classList.toggle("is-grid", state.viewMode === "grid");
+    $("#habitList").innerHTML = visibleHabits.map((habit) => renderQuestCard(habit, selectedWeek)).join("");
+    $("#filterEmptyState").hidden = state.habits.length === 0 || visibleHabits.length > 0;
+    document.querySelectorAll("[data-quest-filter]").forEach((button) => {
+      const active = button.dataset.questFilter === state.activeFilter;
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-pressed", String(active));
+    });
+    $("#listViewButton").classList.toggle("is-active", state.viewMode === "list");
+    $("#listViewButton").setAttribute("aria-pressed", String(state.viewMode === "list"));
+    $("#gridViewButton").classList.toggle("is-active", state.viewMode === "grid");
+    $("#gridViewButton").setAttribute("aria-pressed", String(state.viewMode === "grid"));
     renderWeek();
-    renderProgress(completedThisWeek, weeklyGoalTotal);
     renderAchievements(totalPoints, streak);
   }
 
-  function renderQuestCard(habit) {
-    const goal = getQuestGoal(habit);
-    const entries = getHabitWeekCompletions(habit.id);
+  function renderQuestCard(habit, selectedWeek) {
+    const goal = getQuestGoal(habit, selectedWeek);
+    const entries = getHabitWeekCompletions(habit.id, selectedWeek);
     const count = entries.length;
     const extras = Math.max(0, count - goal);
     const slotCount = Math.max(goal, count + 1);
+    const editableWeek = selectedWeek === weekStart();
+    const percent = Math.round(count / goal * 100);
     const slots = Array.from({ length: slotCount }, (_, index) => {
       const entry = entries[index];
       const isNext = index === count;
-      const isLocked = !entry && !isNext;
-      const label = entry ? `Undo check-in ${index + 1} for ${habit.title}` : isNext ? `Complete quest step ${index + 1} for ${habit.title}` : `Quest step ${index + 1} is locked`;
-      return `<button class="quest-slot ${entry ? "is-complete" : ""} ${isNext ? "is-next" : ""}" type="button" data-quest-slot="true" data-habit-id="${escapeHTML(habit.id)}" ${entry ? `data-completion-id="${escapeHTML(entry.id)}"` : ""} ${isLocked ? 'data-locked="true" disabled' : ""} aria-label="${escapeHTML(label)}" aria-pressed="${Boolean(entry)}">${entry ? "✓" : ""}</button>`;
+      const isLocked = !editableWeek || (!entry && !isNext);
+      const slotDay = entry ? (index >= goal ? `Bonus ${index - goal + 1}` : formatSlotDay(entry.completed_on)) : index >= goal ? "Bonus" : `Step ${index + 1}`;
+      const slotDate = entry ? formatSlotDate(entry.completed_on) : isNext && editableWeek ? "Ready" : isNext ? "Read only" : "Locked";
+      const label = entry ? `${editableWeek ? "Undo" : "View"} check-in ${index + 1} for ${habit.title}, ${formatSlotDay(entry.completed_on)} ${formatSlotDate(entry.completed_on)}` : isNext && editableWeek ? `Complete ${slotDay} for ${habit.title}` : `${slotDay} for ${habit.title} is locked`;
+      return `<button class="quest-slot ${entry ? "is-complete" : ""} ${isNext ? "is-next" : ""} ${index >= goal ? "is-bonus" : ""}" type="button" data-quest-slot="true" data-habit-id="${escapeHTML(habit.id)}" ${entry ? `data-completion-id="${escapeHTML(entry.id)}"` : ""} ${isLocked ? 'data-locked="true" disabled' : ""} aria-label="${escapeHTML(label)}" aria-pressed="${Boolean(entry)}"><span class="quest-slot-day">${escapeHTML(slotDay)}</span><span class="quest-slot-date">${escapeHTML(slotDate)}</span><span class="quest-slot-check">${entry ? "✓" : ""}</span></button>`;
     }).join("");
-    const status = extras ? `${count} complete · ${goal} target · ${extras} bonus` : `${count} of ${goal} this week`;
-    return `<article class="quest-card"><div class="quest-card-heading"><div class="habit-emoji" aria-hidden="true">${escapeHTML(habit.emoji || "🌱")}</div><div class="habit-info"><strong>${escapeHTML(habit.title)}</strong><span>${status}</span></div><span class="habit-xp">+10 XP each</span></div><div class="quest-slots" role="group" aria-label="${escapeHTML(habit.title)} weekly check-ins">${slots}</div><div class="quest-card-foot"><span>${count >= goal ? "Weekly target reached" : `${goal - count} ${goal - count === 1 ? "check-in" : "check-ins"} to target`}</span><span>${count > 0 ? `${count} ${count === 1 ? "check-in" : "check-ins"}` : "Ready when you are"}</span></div></article>`;
+    const status = count >= goal ? "Goal reached" : count ? "In progress" : "Not started";
+    const statusClass = count >= goal ? "reached" : count ? "active" : "not-started";
+    return `<article class="quest-card ${statusClass}"><div class="quest-main"><div class="quest-icon" aria-hidden="true">${escapeHTML(habit.emoji || "🌱")}</div><div class="quest-details"><div class="quest-name-row"><h3>${escapeHTML(habit.title)}</h3><span class="quest-status">${status}</span></div><p class="quest-target">🎯 Target: ${goal} ${goal === 1 ? "time" : "times"} per week</p><div class="quest-progress-row"><strong>${count}/${goal}</strong><span class="quest-mini-track"><i style="width:${Math.min(100, percent)}%"></i></span><small>${percent}%</small></div>${extras ? `<span class="bonus-note">🏆 ${extras} bonus ${extras === 1 ? "check-in" : "check-ins"}</span>` : ""}</div></div><div class="quest-slots" role="group" aria-label="${escapeHTML(habit.title)} weekly check-ins">${slots}</div></article>`;
   }
 
   function renderWeek() {
-    const starts = Array.from({ length: 4 }, (_, index) => offsetWeek(weekStart(), index - 3));
+    const selectedWeek = state.selectedWeekStart || weekStart();
+    const starts = Array.from({ length: 4 }, (_, index) => offsetWeek(selectedWeek, index - 3));
     const counts = starts.map((start) => getWeekCompletions(start).length);
     const maxCount = Math.max(4, ...counts);
-    const labels = ["3w ago", "2w ago", "Last", "This"];
+    const labels = ["3w ago", "2w ago", "Last", selectedWeek === weekStart() ? "This" : "Selected"];
     $("#weekChart").innerHTML = starts.map((start, index) => {
       const count = counts[index];
       const height = count ? Math.max(8, Math.round(count / maxCount * 100)) : 4;
@@ -150,17 +207,6 @@
     }).join("");
     const total = counts.reduce((sum, count) => sum + count, 0);
     $("#weekTotal").textContent = `${total} ${total === 1 ? "check-in" : "check-ins"}`;
-  }
-
-  function renderProgress(done, total) {
-    const percent = total ? Math.min(100, Math.round(done / total * 100)) : 0;
-    const extras = Math.max(0, done - total);
-    $("#progressPercent").textContent = `${percent}%`;
-    $("#progressRing").style.background = `conic-gradient(var(--green) ${percent * 3.6}deg, #edf1e8 ${percent * 3.6}deg)`;
-    $("#goalTrackFill").style.width = `${percent}%`;
-    $("#goalCount").textContent = `${done} of ${total} weekly check-ins${extras ? ` · ${extras} bonus` : ""}`;
-    $("#goalTitle").textContent = total && percent === 100 ? "Weekly target reached" : total && percent > 0 ? "Quest in progress" : "A fresh quest week";
-    $("#goalMessage").textContent = total && percent === 100 ? "Your bonus quests are unlocked." : total ? "Every check-in moves you closer." : "Add a quest to begin your week.";
   }
 
   function renderAchievements(points, streak) {
@@ -192,13 +238,28 @@
     return { data: rows, error: null };
   }
 
+  async function fetchAllQuestWeeks(userId) {
+    const rows = [];
+    for (let from = 0; ; from += 1000) {
+      const { data, error } = await db.from("habit_quest_weeks")
+        .select("habit_id,week_start,weekly_goal")
+        .eq("user_id", userId)
+        .order("week_start", { ascending: true })
+        .range(from, from + 999);
+      if (error) return { data: null, error };
+      rows.push(...(data || []));
+      if (!data || data.length < 1000) break;
+    }
+    return { data: rows, error: null };
+  }
+
   async function loadAccountData() {
     setBusy(true);
     const currentWeek = weekStart();
     const [habitsResult, completionsResult, questWeeksResult] = await Promise.all([
       db.from("habits").select("id,title,emoji,weekly_goal,created_at").eq("user_id", state.user.id).eq("archived", false).order("created_at", { ascending: true }),
       fetchAllCompletions(state.user.id),
-      db.from("habit_quest_weeks").select("habit_id,week_start,weekly_goal").eq("user_id", state.user.id).eq("week_start", currentWeek)
+      fetchAllQuestWeeks(state.user.id)
     ]);
     const error = habitsResult.error || completionsResult.error || questWeeksResult.error;
     if (error) {
@@ -209,7 +270,7 @@
     state.habits = habitsResult.data || [];
     state.completions = completionsResult.data || [];
     state.questWeeks = questWeeksResult.data || [];
-    const existingWeekHabitIds = new Set(state.questWeeks.map((row) => row.habit_id));
+    const existingWeekHabitIds = new Set(state.questWeeks.filter((row) => row.week_start === currentWeek).map((row) => row.habit_id));
     const missingWeekRows = state.habits.filter((habit) => !existingWeekHabitIds.has(habit.id)).map((habit) => ({
       user_id: state.user.id,
       habit_id: habit.id,
@@ -331,6 +392,7 @@
   }
 
   function init() {
+    state.selectedWeekStart = weekStart();
     const now = new Date();
     $("#todayLabel").textContent = new Intl.DateTimeFormat("en", { weekday: "short", month: "short", day: "numeric" }).format(now);
     if (state.demo) {
@@ -368,7 +430,9 @@
     window.setInterval(() => {
       const currentDate = localDate();
       if (currentDate === today) return;
+      const wasViewingCurrentWeek = state.selectedWeekStart === weekStart();
       today = currentDate;
+      if (wasViewingCurrentWeek) state.selectedWeekStart = weekStart();
       $("#todayLabel").textContent = new Intl.DateTimeFormat("en", { weekday: "short", month: "short", day: "numeric" }).format(new Date(`${today}T12:00:00`));
       if (state.user && !state.demo) loadAccountData();
       else render();
@@ -384,6 +448,20 @@
   $("#addHabitButton").addEventListener("click", () => $("#habitDialog").showModal());
   $("#emptyAddButton").addEventListener("click", () => $("#habitDialog").showModal());
   $("#habitForm").addEventListener("submit", addHabit);
+  $("#previousWeekButton").addEventListener("click", () => {
+    state.selectedWeekStart = offsetWeek(state.selectedWeekStart || weekStart(), -1);
+    render();
+  });
+  $("#nextWeekButton").addEventListener("click", () => {
+    if (state.selectedWeekStart < weekStart()) state.selectedWeekStart = offsetWeek(state.selectedWeekStart, 1);
+    render();
+  });
+  document.querySelectorAll("[data-quest-filter]").forEach((button) => button.addEventListener("click", () => {
+    state.activeFilter = button.dataset.questFilter;
+    render();
+  }));
+  $("#listViewButton").addEventListener("click", () => { state.viewMode = "list"; render(); });
+  $("#gridViewButton").addEventListener("click", () => { state.viewMode = "grid"; render(); });
   $("#settingsButton").addEventListener("click", openSettings);
   $("#settingsTopButton").addEventListener("click", openSettings);
   $("#bannerSettingsButton").addEventListener("click", openSettings);
